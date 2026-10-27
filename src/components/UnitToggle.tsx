@@ -19,7 +19,7 @@ export default function UnitToggle({ unit, onChange }: UnitToggleProps) {
           aria-label={value === 'celsius' ? 'Celsius' : 'Fahrenheit'}
           aria-pressed={unit === value}
           onClick={() => onChange(value)}
-          className={`min-h-11 min-w-11 rounded-lg px-3 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 ${
+          className={`min-h-11 min-w-11 rounded-lg px-3 font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 ${
             unit === value ? 'bg-accent-400 text-night-900' : 'text-slate-200 hover:bg-white/10'
           }`}
         >

@@ -126,10 +126,12 @@ test('exige seleção explícita, permite uso por teclado e limpa dados em nova 
     name: 'Selecionar São Paulo, São Paulo, Brasil',
   });
   await expect(selectCity).toBeVisible();
+  await expect(page.getByRole('main')).toBeFocused();
   await expect(page.getByText('22,4 °C')).toHaveCount(0);
   await selectCity.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByText('22,4 °C')).toBeVisible();
+  await expect(page.getByRole('main')).toBeFocused();
 
   const fahrenheit = page.getByRole('button', { name: 'Fahrenheit' });
   await fahrenheit.focus();

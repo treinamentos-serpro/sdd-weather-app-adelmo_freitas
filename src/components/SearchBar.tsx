@@ -47,12 +47,12 @@ export default function SearchBar({ onSearch, disabled = false }: SearchBarProps
           }}
           placeholder="Ex.: São Paulo"
           autoComplete="address-level2"
-          className="min-h-11 w-full min-w-0 rounded-xl border border-white/20 bg-white/5 px-4 text-white backdrop-blur-md placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-11 w-full min-w-0 rounded-xl border border-white/20 bg-white/5 px-4 text-white backdrop-blur-md placeholder:text-slate-400 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={disabled}
-          className="min-h-11 rounded-xl bg-accent-400 px-5 font-semibold text-night-900 hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-11 rounded-xl bg-accent-400 px-5 font-semibold text-night-900 transition-colors hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Buscar
         </button>

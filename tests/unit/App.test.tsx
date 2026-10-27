@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../../src/App';
 
 const city = {
@@ -38,10 +38,77 @@ function search(name: string) {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  window.localStorage.clear();
+});
+
+beforeEach(() => {
+  window.localStorage.clear();
 });
 
 describe('App com Open-Meteo', () => {
+  it('indica carregamento e move o foco para os resultados', async () => {
+    let resolveSearch: ((response: Response) => void) | undefined;
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveSearch = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify(forecast), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+    const main = screen.getByRole('main');
+
+    search('São Paulo');
+    expect(main).toHaveAttribute('aria-busy', 'true');
+    await act(async () => {
+      resolveSearch?.(new Response(JSON.stringify({ results: [city] }), { status: 200 }));
+    });
+
+    const result = await screen.findByRole('button', {
+      name: 'Selecionar São Paulo, São Paulo, Brasil',
+    });
+    expect(main).toHaveAttribute('aria-busy', 'false');
+    expect(main).toHaveFocus();
+
+    fireEvent.click(result);
+    expect(main).toHaveAttribute('aria-busy', 'true');
+    await screen.findByText('22,4 °C');
+    expect(main).toHaveAttribute('aria-busy', 'false');
+    expect(main).toHaveFocus();
+  });
+
+  it('restaura e salva a unidade de temperatura no armazenamento local', () => {
+    window.localStorage.setItem('weather-unit', 'fahrenheit');
+    const { unmount } = render(<App />);
+    expect(screen.getByRole('button', { name: 'Fahrenheit', pressed: true })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Celsius' }));
+    expect(window.localStorage.getItem('weather-unit')).toBe('celsius');
+
+    unmount();
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Celsius', pressed: true })).toBeVisible();
+  });
+
+  it('continua permitindo alternar unidade se o armazenamento local falhar', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Storage unavailable', 'SecurityError');
+    });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage unavailable', 'SecurityError');
+    });
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Celsius', pressed: true })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Fahrenheit' }));
+    expect(screen.getByRole('button', { name: 'Fahrenheit', pressed: true })).toBeVisible();
+  });
+
   it('busca cidades, exige seleção explícita e exibe previsão em ambas as unidades', async () => {
     const fetchMock = vi
       .fn()

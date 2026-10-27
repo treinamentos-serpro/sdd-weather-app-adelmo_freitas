@@ -242,6 +242,56 @@ describe('getWeather', () => {
     });
     await expect(getWeather(city)).rejects.toBeInstanceOf(WeatherServiceError);
   });
+
+  it('mantém métricas opcionais indisponíveis e distingue falhas HTTP e de rede', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            timezone: 'UTC',
+            current: {
+              time: '2026-10-27T14:00',
+              temperature_2m: 22,
+              apparent_temperature: 22,
+              weather_code: 0,
+              relative_humidity_2m: 50,
+              wind_speed_10m: 4,
+            },
+            daily: {
+              time: dates,
+              weather_code: [0, 0, 0, 0, 0],
+              temperature_2m_min: [10, 10, 10, 10, 10],
+              temperature_2m_max: [20, 20, 20, 20, 20],
+              precipitation_probability_max: [null, 0, 0, 0, 0],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockRejectedValueOnce(new TypeError('offline'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const data = await getWeather(city);
+    expect(data.current).toMatchObject({ precipitationMm: null, pressureHpa: null });
+    expect(data.forecast[0]).toMatchObject({
+      available: false,
+      precipitationProbabilityPercent: null,
+    });
+
+    await expect(getWeather(city)).rejects.toMatchObject({
+      name: 'WeatherServiceError',
+      kind: 'api',
+    });
+    await expect(getWeather(city)).rejects.toBeInstanceOf(WeatherServiceError);
+
+    await expect(getWeather(city)).rejects.toMatchObject({
+      name: 'WeatherServiceError',
+      kind: 'network',
+      message: 'Falha de rede.',
+    });
+  });
 });
 
 describe('fetchWithTimeout', () => {

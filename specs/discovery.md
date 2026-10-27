@@ -6,6 +6,14 @@ Aplicação web para consultar o clima atual e uma previsão curta de uma cidade
 
 Para a v1, ficam registradas as decisões já confirmadas: usar Open-Meteo para geocodificação e previsão, considerar hoje e os quatro dias seguintes, oferecer geolocalização sem solicitá-la automaticamente, iniciar em Celsius e apresentar a interface em pt-BR.
 
+## Resumo Executivo
+
+- O Weather App permitirá consultar o clima atual de uma cidade e apoiar decisões do dia a dia.
+- A pessoa poderá buscar pelo nome ou usar a localização atual após conceder permissão.
+- A previsão cobrirá hoje e os quatro dias seguintes, com temperatura, condição e chance de chuva.
+- A experiência priorizará celulares, será em pt-BR e começará em Celsius, com opção de Fahrenheit.
+- A v1 dependerá de conexão, não exigirá conta e usará um serviço externo cujos limites devem ser validados antes do lançamento.
+
 ## Requisitos Funcionais
 
 - **RF1 — Buscar cidades:** permitir busca enviada por nome e seleção de um resultado. Exibir cidade, região/estado e país para distinguir homônimos.

@@ -29,14 +29,15 @@ Para a v1, ficam registradas as decisões já confirmadas: usar Open-Meteo para 
 
 As probabilidades e os impactos são estimativas para a v1 e devem ser revistos após observar uso e disponibilidade do provedor.
 
-| Risco | Probabilidade | Impacto | Mitigação proposta |
-| --- | --- | --- | --- |
-| API lenta, indisponível ou sujeita a limites de uso. | Média | Alto | Tratar erro e permitir nova tentativa; validar limites e condições de uso antes de publicar. |
-| Seleção de cidade homônima ou incorreta. | Média | Alto | Mostrar região/estado e país e exigir seleção explícita quando houver múltiplos resultados. |
-| Permissão de geolocalização negada ou posição indisponível. | Média | Médio | Não solicitar automaticamente; preservar busca digitada e explicar como continuar. |
-| Rede móvel instável ou sem conexão. | Média | Médio | Mostrar carregamento/erro e ação de retry; declarar que a v1 requer conexão e não tem modo offline. |
-| Diferenças de unidade ou fuso causarem leitura incorreta. | Baixa | Alto | Centralizar a preferência de unidade e usar o fuso retornado para a cidade; validar conversões e datas. |
-| Compartilhamento inesperado de coordenadas. | Baixa | Alto | Solicitar localização apenas por ação explícita, não persistir coordenadas e limitar o envio à consulta do clima. |
+| Tipo | Risco | Probabilidade | Impacto | Mitigação |
+| --- | --- | --- | --- | --- |
+| Técnico | API lenta, indisponível ou sujeita a limites de uso. | Média | Alto | Tratar falhas e permitir nova tentativa; validar limites e condições de uso antes da publicação. |
+| Produto | Seleção de cidade homônima ou incorreta. | Média | Alto | Exibir região/estado e país e exigir seleção explícita quando houver múltiplos resultados. |
+| Produto | Pessoa usuária negar a geolocalização ou não compreender por que ela foi solicitada. | Média | Médio | Solicitar localização apenas após ação explícita, explicar o uso e manter a busca digitada como alternativa. |
+| Técnico | Rede móvel instável ou sem conexão impede atualizar a previsão. | Média | Médio | Exibir estado de erro e ação de retry; deixar claro que a v1 requer conexão e não oferece modo offline. |
+| Técnico | Erro de conversão de unidade ou fuso resulta em informação enganosa. | Baixa | Alto | Centralizar conversões e datas por fuso da cidade e validar os casos com testes. |
+| Produto | Compartilhamento inesperado de coordenadas reduz a confiança no app. | Baixa | Alto | Não solicitar localização automaticamente, não persistir coordenadas e enviá-las somente ao provedor para a consulta solicitada. |
+| Produto | Previsão diária não atender quem espera detalhes por hora. | Média | Médio | Informar claramente que a v1 oferece resumo diário e validar a necessidade com usuários antes de ampliar o escopo. |
 
 ## Perguntas em Aberto
 

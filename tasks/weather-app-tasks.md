@@ -295,6 +295,9 @@ lançamento.
     `useWeatherApp`, sem colocar lógica HTTP nos componentes.
   - Loading, erro, empty, dados completos e parciais são exibidos sem dados
     anteriores aparentarem atuais.
+  - O anúncio de conclusão para leitores de tela não afirma disponibilidade
+    de clima atual ou previsão quando a resposta é parcial; as seções indicam
+    os dados disponíveis e indisponíveis (AC-02.3, AC-03.4 e NFR-08).
   - Layout funciona a partir de 320 px até desktop, sem rolagem horizontal;
     foco visível, contraste e nomes acessíveis são preservados.
   - Entrada principal da aplicação carrega a tela sem erros de console.

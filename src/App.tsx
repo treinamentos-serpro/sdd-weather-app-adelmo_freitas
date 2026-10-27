@@ -94,8 +94,8 @@ export default function App() {
         {data && (
           <>
             <p role="status" className="sr-only">
-              Clima de {data.city?.name ?? 'sua localização'} carregado. Previsão de cinco dias
-              disponível.
+              Consulta de clima de {data.city?.name ?? 'sua localização'} concluída. Consulte
+              abaixo a disponibilidade dos dados atuais e da previsão.
             </p>
             <CurrentWeather city={data.city} current={data.current} unit={unit} />
             <ForecastList forecast={data.forecast} unit={unit} />

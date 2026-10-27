@@ -48,6 +48,52 @@ beforeEach(() => {
 });
 
 describe('App com Open-Meteo', () => {
+  it.each([
+    { scenario: 'completos', payload: forecast, unavailable: [] },
+    {
+      scenario: 'sem clima atual',
+      payload: { ...forecast, current: null },
+      unavailable: ['Clima atual indisponível para este local.'],
+    },
+    {
+      scenario: 'sem previsão diária',
+      payload: { ...forecast, daily: { ...forecast.daily, time: [] } },
+      unavailable: ['Previsão indisponível para este local.'],
+    },
+    {
+      scenario: 'com um dia incompleto',
+      payload: {
+        ...forecast,
+        daily: { ...forecast.daily, weather_code: [null, 61, 3, 0, 1] },
+      },
+      unavailable: ['Previsão indisponível para este dia.'],
+    },
+  ])('anuncia a conclusão sem prometer dados disponíveis: $scenario', async ({
+    payload,
+    unavailable,
+  }) => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ results: [city] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    search('São Paulo');
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Consulta de clima de São Paulo concluída. Consulte abaixo a disponibilidade dos dados atuais e da previsão.',
+      ),
+    );
+    for (const message of unavailable) {
+      expect(screen.getByText(message)).toBeVisible();
+    }
+  });
+
   it('indica carregamento e move o foco para os resultados', async () => {
     let resolveSearch: ((response: Response) => void) | undefined;
     const fetchMock = vi

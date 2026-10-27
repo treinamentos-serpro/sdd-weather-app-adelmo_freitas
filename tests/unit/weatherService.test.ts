@@ -133,12 +133,14 @@ describe('getWeather', () => {
             weather_code: 2,
             relative_humidity_2m: 64,
             wind_speed_10m: 12.5,
+            precipitation: 0.1,
+            surface_pressure: 1013.2,
           },
           daily: {
             time: dates,
             weather_code: [2, 61, 3, 0, 1],
-            temperature_2m_min: [17.2, 18, 19, 16, 17],
             temperature_2m_max: [25.1, 24.3, 26, 23, 24],
+            temperature_2m_min: [17.2, 18, 19, 16, 17],
             precipitation_probability_max: [10, 70, 0, 5, 15],
           },
         }),
@@ -154,8 +156,12 @@ describe('getWeather', () => {
     const params = new URL(url).searchParams;
     expect(params.get('latitude')).toBe('-23.5');
     expect(params.get('longitude')).toBe('-46.6');
-    expect(params.get('current')).toContain('temperature_2m');
-    expect(params.get('daily')).toContain('precipitation_probability_max');
+    expect(params.get('current')).toBe(
+      'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,surface_pressure,precipitation,weather_code',
+    );
+    expect(params.get('daily')).toBe(
+      'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+    );
     expect(params.get('temperature_unit')).toBe('celsius');
     expect(params.get('wind_speed_unit')).toBe('kmh');
     expect(params.get('timezone')).toBe('auto');
@@ -170,6 +176,8 @@ describe('getWeather', () => {
       condition: 'Parcialmente nublado',
       relativeHumidityPercent: 64,
       windSpeedKmh: 12.5,
+      precipitationMm: 0.1,
+      pressureHpa: 1013.2,
     });
     expect(result.forecast).toHaveLength(5);
     expect(result.forecast[0]).toMatchObject({

@@ -208,8 +208,8 @@ flowchart TD
 - **Método:** `GET`
 - **Parâmetros usados:**
   - `latitude` e `longitude`: coordenadas da `City` selecionada ou da geolocalização aprovada.
-  - `current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m`: campos necessários ao clima atual.
-  - `daily=weather_code,temperature_2m_min,temperature_2m_max,precipitation_probability_max`: resumo diário, temperaturas e chance de precipitação.
+  - `current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,surface_pressure,precipitation,weather_code`: campos do clima atual; sensação térmica permanece para atender FR-02.
+  - `daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`: resumo diário, temperaturas e chance de precipitação.
   - `temperature_unit=celsius`: resposta canônica em Celsius para que a escolha de unidade não exija outra requisição.
   - `wind_speed_unit=kmh`: unidade exigida pela spec.
   - `timezone=auto`: calendário e horários locais ao destino.
@@ -225,13 +225,15 @@ flowchart TD
     "apparent_temperature": 23.1,
     "weather_code": 2,
     "relative_humidity_2m": 64,
-    "wind_speed_10m": 12.5
+    "wind_speed_10m": 12.5,
+    "surface_pressure": 1013.2,
+    "precipitation": 0.1
   },
   "daily": {
     "time": ["2026-10-27", "2026-10-28"],
     "weather_code": [2, 61],
-    "temperature_2m_min": [17.2, 18.0],
     "temperature_2m_max": [25.1, 24.3],
+    "temperature_2m_min": [17.2, 18.0],
     "precipitation_probability_max": [10, 70]
   }
 }

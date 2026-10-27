@@ -86,6 +86,8 @@ function mapCurrent(value: unknown): CurrentWeather | null {
     condition: getWeatherCondition(value.weather_code).description,
     relativeHumidityPercent: value.relative_humidity_2m,
     windSpeedKmh: value.wind_speed_10m,
+    precipitationMm: optionalNumber(value.precipitation),
+    pressureHpa: optionalNumber(value.surface_pressure),
   };
 }
 
@@ -189,8 +191,8 @@ export async function getWeather(city: City, signal?: AbortSignal): Promise<Weat
     latitude: String(city.latitude),
     longitude: String(city.longitude),
     current:
-      'temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m',
-    daily: 'weather_code,temperature_2m_min,temperature_2m_max,precipitation_probability_max',
+      'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,surface_pressure,precipitation,weather_code',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
     temperature_unit: 'celsius',
     wind_speed_unit: 'kmh',
     timezone: 'auto',

@@ -124,7 +124,8 @@ lançamento.
   - Mapeia timezone, seção atual e arrays diários por índice para
     `WeatherData`; o modelo recebe temperaturas em Celsius.
   - Clima atual com algum campo obrigatório ausente fica indisponível, sem
-    substituir campos por zero.
+    substituir campos por zero; precipitação e pressão são mapeadas como
+    extensões opcionais quando retornadas.
   - Cada dia exige data, código WMO, mínima, máxima e probabilidade; arrays
     ausentes, curtos ou inválidos tornam indisponíveis somente os dias afetados,
     preservando os completos.

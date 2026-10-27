@@ -154,6 +154,65 @@ test('mostra o estado vazio quando o geocoding não retorna cidades', async ({ p
   await expect(page.getByText('22,4 °C')).toHaveCount(0);
 });
 
+test('trata busca vazia, caracteres especiais, cidade inexistente e forecast incompleto', async ({
+  page,
+}) => {
+  const searchQueries: string[] = [];
+  const specialCityName = 'São João-d’Oeste';
+  const partialForecast = {
+    ...forecast,
+    daily: {
+      ...forecast.daily,
+      precipitation_probability_max: [null, 70, 0, 5, 15],
+    },
+  };
+  await page.route('https://geocoding-api.open-meteo.com/**', async (route) => {
+    const query = new URL(route.request().url()).searchParams.get('name');
+    if (query) searchQueries.push(query);
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(
+        query === 'Atlantis' ? {} : { results: [{ ...city, name: query ?? '' }] },
+      ),
+    });
+  });
+  await page.route('https://api.open-meteo.com/**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(partialForecast),
+    });
+  });
+
+  const input = page.getByRole('searchbox', { name: 'Cidade' });
+  await input.fill('   ');
+  await input.press('Enter');
+  await expect(page.getByRole('alert')).toHaveText('Digite o nome de uma cidade.');
+  expect(searchQueries).toEqual([]);
+
+  await input.fill('Atlantis');
+  await input.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Nenhuma cidade encontrada' })).toBeVisible();
+
+  await input.fill(`  ${specialCityName}  `);
+  await input.press('Enter');
+  await expect(
+    page.getByRole('button', {
+      name: `Selecionar ${specialCityName}, São Paulo, Brasil`,
+    }),
+  ).toBeVisible();
+  expect(searchQueries).toEqual(['Atlantis', specialCityName]);
+  await page
+    .getByRole('button', {
+      name: `Selecionar ${specialCityName}, São Paulo, Brasil`,
+    })
+    .click();
+
+  const cards = page.getByRole('article');
+  await expect(cards).toHaveCount(5);
+  await expect(cards.nth(0)).toContainText('Previsão indisponível para este dia.');
+  await expect(cards.nth(1)).toContainText('24,3 °C');
+});
+
 test('completa a busca e mostra o clima em viewport mobile de 375 × 812', async ({ page }) => {
   await mockOpenMeteo(page);
   await page.setViewportSize({ width: 375, height: 812 });

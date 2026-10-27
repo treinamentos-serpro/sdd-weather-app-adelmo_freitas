@@ -7,6 +7,7 @@ import {
 import type { City } from '../../src/types/weather';
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -232,5 +233,50 @@ describe('getWeather', () => {
       message: 'Resposta incompleta da previsão.',
     });
     await expect(getWeather(city)).rejects.toBeInstanceOf(WeatherServiceError);
+  });
+});
+
+describe('fetchWithTimeout', () => {
+  it('converte AbortError em timeout após 10 segundos e limpa o timer', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => {
+              reject(new DOMException('Aborted', 'AbortError'));
+            });
+          }),
+      ),
+    );
+
+    const request = searchCities('Recife');
+    const timeoutAssertion = expect(request).rejects.toMatchObject({
+      message: 'A requisição demorou demais.',
+      kind: 'timeout',
+    });
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    await timeoutAssertion;
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('converte falha de rede e limpa o timer após falha ou resposta', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('offline'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({}), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(searchCities('Recife')).rejects.toMatchObject({
+      message: 'Falha de rede.',
+      kind: 'network',
+    });
+    expect(vi.getTimerCount()).toBe(0);
+
+    await expect(searchCities('Recife')).resolves.toEqual([]);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

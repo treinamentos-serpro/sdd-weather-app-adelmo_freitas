@@ -42,7 +42,7 @@ async function mockOpenMeteo(page: Page, failFirstSearch = false) {
     const query = new URL(route.request().url()).searchParams.get('name');
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify(query === 'Recife' ? {} : { results: [city] }),
+      body: JSON.stringify(query === 'Recife' || query === 'Atlantis' ? {} : { results: [city] }),
     });
   });
   await page.route('https://api.open-meteo.com/**', async (route) => {
@@ -133,6 +133,30 @@ test('exige seleção explícita, permite uso por teclado e limpa dados em nova 
   await expect(page.getByRole('heading', { name: 'Nenhuma cidade encontrada' })).toBeVisible();
   await expect(page.getByText('72,3 °F')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test('mostra o estado vazio quando o geocoding não retorna cidades', async ({ page }) => {
+  await mockOpenMeteo(page);
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('Atlantis');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Nenhuma cidade encontrada' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Selecionar/ })).toHaveCount(0);
+  await expect(page.getByText('22,4 °C')).toHaveCount(0);
+});
+
+test('completa a busca e mostra o clima em viewport mobile de 375 × 812', async ({ page }) => {
+  await mockOpenMeteo(page);
+  await page.setViewportSize({ width: 375, height: 812 });
+
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }).click();
+
+  await expect(page.getByText('22,4 °C')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Previsão de 5 dias' })).toBeVisible();
+  await expect(page.getByRole('article')).toHaveCount(5);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
 test('mantém contraste de texto normal de pelo menos 4,5:1', async ({ page }) => {

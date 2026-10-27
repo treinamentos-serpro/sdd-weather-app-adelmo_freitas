@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  getWeather,
-  searchCities,
-  WeatherServiceError,
-} from '../../src/services/weatherService';
+import { getWeather, searchCities, WeatherServiceError } from '../../src/services/weatherService';
 import type { City } from '../../src/types/weather';
 
 afterEach(() => {
@@ -92,7 +88,9 @@ describe('searchCities', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(new Response(null, { status: 503 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ results: 'inválido' }), { status: 200 }));
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ results: 'inválido' }), { status: 200 }),
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     const httpError = searchCities('Recife');
@@ -113,13 +111,7 @@ describe('getWeather', () => {
     latitude: -23.5,
     longitude: -46.6,
   };
-  const dates = [
-    '2026-10-27',
-    '2026-10-28',
-    '2026-10-29',
-    '2026-10-30',
-    '2026-10-31',
-  ];
+  const dates = ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31'];
 
   it('envia os parâmetros de forecast e mapeia clima atual e cinco dias', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
@@ -238,7 +230,7 @@ describe('getWeather', () => {
     await expect(getWeather(city)).rejects.toMatchObject({
       name: 'WeatherServiceError',
       kind: 'invalid-response',
-      message: 'Resposta incompleta da previsão.',
+      message: 'O serviço retornou dados inválidos. Tente novamente.',
     });
     await expect(getWeather(city)).rejects.toBeInstanceOf(WeatherServiceError);
   });
@@ -289,7 +281,7 @@ describe('getWeather', () => {
     await expect(getWeather(city)).rejects.toMatchObject({
       name: 'WeatherServiceError',
       kind: 'network',
-      message: 'Falha de rede.',
+      message: 'Não foi possível conectar. Verifique sua conexão e tente novamente.',
     });
   });
 
@@ -356,7 +348,8 @@ describe('fetchWithTimeout', () => {
 
     const request = searchCities('Recife');
     const timeoutAssertion = expect(request).rejects.toMatchObject({
-      message: 'A requisição demorou demais.',
+      message:
+        'A consulta excedeu o limite de 10 segundos. Verifique sua conexão e tente novamente.',
       kind: 'timeout',
     });
     await vi.advanceTimersByTimeAsync(10_000);
@@ -374,7 +367,7 @@ describe('fetchWithTimeout', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(searchCities('Recife')).rejects.toMatchObject({
-      message: 'Falha de rede.',
+      message: 'Não foi possível conectar. Verifique sua conexão e tente novamente.',
       kind: 'network',
     });
     expect(vi.getTimerCount()).toBe(0);

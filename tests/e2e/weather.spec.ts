@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 const city = {
   id: 1,
@@ -62,7 +62,9 @@ test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', asyn
   await page.getByRole('button', { name: 'Buscar' }).click();
   await page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }).click();
   await expect(page.getByText('22,4 °C')).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Clima atual · São Paulo, São Paulo, Brasil' })).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Clima atual · São Paulo, São Paulo, Brasil' }),
+  ).toBeVisible();
   await expect(page.getByRole('region', { name: 'Previsão de 5 dias' })).toBeVisible();
 
   for (const { width, columns } of [
@@ -223,9 +225,34 @@ test('erro de geocoding oferece retry manual', async ({ page }) => {
   await mockOpenMeteo(page, true);
   await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
   await page.getByRole('button', { name: 'Buscar' }).click();
-  await expect(page.getByRole('alert')).toContainText('Falha ao buscar cidades.');
+  await expect(page.getByRole('alert')).toContainText('O serviço está indisponível');
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(
     page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
   ).toBeVisible();
+});
+
+test('informa falha de rede e permite refazer a busca após reconexão', async ({ page }) => {
+  let attempts = 0;
+  await page.route('https://geocoding-api.open-meteo.com/**', async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      await route.abort('internetdisconnected');
+      return;
+    }
+
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ results: [city] }),
+    });
+  });
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await expect(page.getByRole('alert')).toContainText('Verifique sua conexão');
+
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
+  ).toBeVisible();
+  expect(attempts).toBe(2);
 });

@@ -84,7 +84,7 @@ describe('App com Open-Meteo', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Fahrenheit' }));
     search('São Paulo');
-    expect(await screen.findByRole('alert')).toHaveTextContent('Falha ao buscar cidades.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('O serviço está indisponível');
 
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     fireEvent.click(
@@ -107,7 +107,7 @@ describe('App com Open-Meteo', () => {
     fireEvent.click(
       await screen.findByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
     );
-    expect(await screen.findByRole('alert')).toHaveTextContent('Falha ao consultar o clima.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('O serviço está indisponível');
 
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     await waitFor(() => expect(screen.getByText('22,4 °C')).toBeVisible());
@@ -144,7 +144,9 @@ describe('App com Open-Meteo', () => {
 
     search('Springfield');
     expect(
-      await screen.findByRole('button', { name: 'Selecionar Springfield, Illinois, Estados Unidos' }),
+      await screen.findByRole('button', {
+        name: 'Selecionar Springfield, Illinois, Estados Unidos',
+      }),
     ).toBeVisible();
     expect(
       screen.getByRole('button', { name: 'Selecionar Springfield, Ohio, Estados Unidos' }),

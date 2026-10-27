@@ -45,6 +45,16 @@ As probabilidades e os impactos são estimativas para a v1 e devem ser revistos 
 - Antes da publicação, validar condições de uso, atribuição exigida e limites de requisição da Open-Meteo. **Impacto se não validado:** risco de uso incompatível com as condições do provedor ou de indisponibilidade por limite.
 - Definir o provedor de hospedagem e revisar a meta de disponibilidade quando a implantação for escolhida. **Impacto se não definido:** não é possível estabelecer ou medir um SLO de disponibilidade da aplicação.
 
+## Decisões
+
+| Decisão | Justificativa | Pergunta em aberto resolvida |
+| --- | --- | --- |
+| **Fonte de dados:** Open-Meteo para geocodificação e previsão, sem API key. | Reduz configuração e dependência de credenciais para a v1. | Qual fonte será usada? Há necessidade de API key? |
+| **Janela da previsão:** cinco dias = hoje + os quatro dias seguintes. | Define uma janela diária simples e consistente com a necessidade de planejamento de curto prazo. | “5 dias” inclui hoje ou começa amanhã? |
+| **Unidade padrão:** Celsius. | Define um valor inicial adequado à interface em pt-BR, mantendo a opção de alternar para Fahrenheit. | Qual unidade deve aparecer na primeira visita? |
+| **Acesso e persistência:** sem autenticação e sem persistência de dados no servidor. | Evita contas e backend de usuário na v1; preferências locais do browser, como a unidade, continuam permitidas. | É necessário login? Os dados ou preferências devem ser persistidos no servidor? |
+| **Idioma da UI:** pt-BR. | Mantém textos e formatos adequados ao público inicial sem introduzir escopo de i18n na v1. | Quais idiomas a interface deve suportar inicialmente? |
+
 ## Personas e Objetivos
 
 Personas hipotéticas para orientar a spec; as métricas abaixo são propostas para validação em testes de usabilidade, não resultados de pesquisa.
@@ -54,7 +64,7 @@ Personas hipotéticas para orientar a spec; as métricas abaixo são propostas p
 | **Decisor do dia a dia** | Consultar rapidamente o clima atual para decidir o que vestir ou levar antes de sair. | Principalmente mobile, em consultas breves antes de um deslocamento. | Em um teste, identifica a condição e a temperatura da cidade desejada em até 30 segundos, sem confundir a unidade. |
 | **Viajante planejador** | Planejar roupas e atividades com base nas condições dos próximos cinco dias no destino. | Desktop ao organizar a viagem; mobile durante o deslocamento. | Em um teste, encontra o destino correto e identifica mínimas, máximas e probabilidade de chuva dos cinco dias em até 2 minutos. |
 
-## Decisões para v1
+## Escopo da v1
 
 - **Público e uso:** qualquer pessoa que queira consultar rapidamente o clima de uma cidade e planejar os próximos dias.
 - **Busca:** usar o serviço de geocodificação da Open-Meteo; buscar após envio do formulário, sem autosuggest. Distinguir resultados por cidade, região/estado e país.

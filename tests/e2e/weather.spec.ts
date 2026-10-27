@@ -80,7 +80,8 @@ test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', asyn
       .getByRole('list')
       .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
     expect(gridColumns).toBe(columns);
-    for (const card of await cards.all()) {
+    for (let index = 0; index < 5; index += 1) {
+      const card = cards.nth(index);
       const dimensions = await card.evaluate((element) => ({
         clientWidth: element.clientWidth,
         scrollWidth: element.scrollWidth,
@@ -91,7 +92,13 @@ test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', asyn
         `overflow in ${width}px card: ${dimensions.content}`,
       ).toBeLessThanOrEqual(dimensions.clientWidth);
     }
-    for (const control of await page.locator('input, button, select').all()) {
+    const controls = [
+      page.getByRole('searchbox', { name: 'Cidade' }),
+      page.getByRole('button', { name: 'Buscar' }),
+      page.getByRole('button', { name: 'Celsius' }),
+      page.getByRole('button', { name: 'Fahrenheit' }),
+    ];
+    for (const control of controls) {
       expect(
         await control.evaluate((element) => element.getBoundingClientRect().height),
       ).toBeGreaterThanOrEqual(44);

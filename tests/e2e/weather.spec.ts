@@ -62,6 +62,8 @@ test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', asyn
   await page.getByRole('button', { name: 'Buscar' }).click();
   await page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }).click();
   await expect(page.getByText('22,4 °C')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Clima atual · São Paulo, São Paulo, Brasil' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Previsão de 5 dias' })).toBeVisible();
 
   for (const { width, columns } of [
     { width: 320, columns: 2 },

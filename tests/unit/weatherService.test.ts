@@ -69,6 +69,9 @@ describe('searchCities', () => {
                 country: 'Brasil',
                 latitude: -8.05,
                 longitude: -34.9,
+                admin1: null,
+                country_code: null,
+                timezone: null,
               },
             ],
           }),
@@ -216,23 +219,72 @@ describe('getWeather', () => {
     expect(result.forecast[1].weatherCode).toBeNull();
   });
 
-  it('lança WeatherServiceError quando current ou daily estão ausentes', async () => {
+  it('mantém seções independentes quando current ou daily estão ausentes', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ timezone: 'UTC', daily: { time: dates } }), { status: 200 }),
+        new Response(
+          JSON.stringify({
+            timezone: 'UTC',
+            current: {
+              time: '2026-10-27T14:00',
+              temperature_2m: 22,
+              apparent_temperature: 22,
+              weather_code: 0,
+              relative_humidity_2m: 50,
+              wind_speed_10m: 4,
+            },
+          }),
+          { status: 200 },
+        ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ timezone: 'UTC', current: {} }), { status: 200 }),
+        new Response(
+          JSON.stringify({
+            timezone: 'UTC',
+            daily: {
+              time: dates,
+              weather_code: [0, 0, 0, 0, 0],
+              temperature_2m_min: [10, 10, 10, 10, 10],
+              temperature_2m_max: [20, 20, 20, 20, 20],
+              precipitation_probability_max: [0, 0, 0, 0, 0],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            timezone: 'UTC',
+            daily: { time: [null, '2026-99-99', '2026-10-27'] },
+          }),
+          { status: 200 },
+        ),
       );
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(getWeather(city)).rejects.toMatchObject({
-      name: 'WeatherServiceError',
-      kind: 'invalid-response',
-      message: 'O serviço retornou dados inválidos. Tente novamente.',
-    });
-    await expect(getWeather(city)).rejects.toBeInstanceOf(WeatherServiceError);
+    const withoutDaily = await getWeather(city);
+    expect(withoutDaily.current).toMatchObject({ temperatureC: 22 });
+    expect(withoutDaily.forecast).toEqual([]);
+
+    const withoutCurrent = await getWeather(city);
+    expect(withoutCurrent.current).toBeNull();
+    expect(withoutCurrent.forecast).toHaveLength(5);
+    expect(withoutCurrent.forecast.every((day) => day.available)).toBe(true);
+
+    const withInvalidDates = await getWeather(city);
+    expect(withInvalidDates.forecast).toEqual([
+      {
+        date: '2026-10-27',
+        available: false,
+        weatherCode: null,
+        condition: null,
+        minTemperatureC: null,
+        maxTemperatureC: null,
+        precipitationProbabilityPercent: null,
+      },
+    ]);
   });
 
   it('mantém métricas opcionais indisponíveis e distingue falhas HTTP e de rede', async () => {

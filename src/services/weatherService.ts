@@ -123,6 +123,19 @@ function mapForecastDay(date: string, daily: Record<string, unknown>, index: num
   };
 }
 
+function isValidDate(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+function mapForecast(value: unknown): ForecastDay[] {
+  if (!isRecord(value) || !Array.isArray(value.time)) return [];
+  return value.time
+    .slice(0, 5)
+    .flatMap((date, index) => (isValidDate(date) ? [mapForecastDay(date, value, index)] : []));
+}
+
 function mapCity(value: unknown): City {
   if (
     !isRecord(value) ||
@@ -131,9 +144,9 @@ function mapCity(value: unknown): City {
     typeof value.country !== 'string' ||
     !isFiniteNumber(value.latitude) ||
     !isFiniteNumber(value.longitude) ||
-    (value.admin1 !== undefined && typeof value.admin1 !== 'string') ||
-    (value.country_code !== undefined && typeof value.country_code !== 'string') ||
-    (value.timezone !== undefined && typeof value.timezone !== 'string')
+    (value.admin1 != null && typeof value.admin1 !== 'string') ||
+    (value.country_code != null && typeof value.country_code !== 'string') ||
+    (value.timezone != null && typeof value.timezone !== 'string')
   ) {
     throw new WeatherServiceError('Resposta inválida da busca de cidades.', 'invalid-response');
   }
@@ -210,23 +223,7 @@ export async function getWeather(city: City, signal?: AbortSignal): Promise<Weat
     throw new WeatherServiceError(ERROR_MESSAGES.api, 'api');
   }
 
-  if (
-    !isRecord(payload) ||
-    payload.error === true ||
-    typeof payload.timezone !== 'string' ||
-    !isRecord(payload.current) ||
-    !isRecord(payload.daily)
-  ) {
-    throw new WeatherServiceError(ERROR_MESSAGES['invalid-response'], 'invalid-response');
-  }
-
-  const daily = payload.daily;
-  const dates = daily.time;
-  if (!Array.isArray(dates) || dates.length < 5) {
-    throw new WeatherServiceError(ERROR_MESSAGES['invalid-response'], 'invalid-response');
-  }
-  const forecastDates = dates.slice(0, 5);
-  if (!forecastDates.every((date): date is string => typeof date === 'string')) {
+  if (!isRecord(payload) || payload.error === true || typeof payload.timezone !== 'string') {
     throw new WeatherServiceError(ERROR_MESSAGES['invalid-response'], 'invalid-response');
   }
 
@@ -234,6 +231,6 @@ export async function getWeather(city: City, signal?: AbortSignal): Promise<Weat
     city,
     timezone: payload.timezone,
     current: mapCurrent(payload.current),
-    forecast: forecastDates.map((date, index) => mapForecastDay(date, daily, index)),
+    forecast: mapForecast(payload.daily),
   };
 }

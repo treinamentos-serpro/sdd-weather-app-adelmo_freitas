@@ -43,9 +43,7 @@ export default function ForecastCard({ day, unit }: ForecastCardProps) {
             </div>
             <div>
               <dt className="text-slate-300">Chance de chuva</dt>
-              <dd className="text-accent-400">
-                {formatNumber(precipitationProbabilityPercent)}%
-              </dd>
+              <dd className="text-accent-400">{formatNumber(precipitationProbabilityPercent)}%</dd>
             </div>
           </dl>
         </>

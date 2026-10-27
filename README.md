@@ -101,6 +101,29 @@ Esta etapa não implementa geocoding, seleção de resultados, geolocalização 
 persistência da unidade. Esses fluxos continuam previstos para a integração
 com API; o hook de demo deve ser substituído pela orquestração do plano.
 
+#### Revisão de UI e acessibilidade — P6.8
+
+- Atalho **Pular para o conteúdo**, com destino focável, para evitar navegação
+  repetitiva pelo header.
+- Nomes acessíveis, mensagens de validação associadas ao input, `aria-pressed`
+  nos botões de unidade e foco visível em todos os controles.
+- Loading e sucesso anunciados como status; erro anunciado como alerta.
+  Ícones decorativos ficam ocultos de tecnologias assistivas, pois a condição
+  também está escrita.
+- Controles com pelo menos 44 px de altura; layout sem overflow a 320, 768 e
+  1280 px, com grid de 2/3/5 colunas e temperaturas nas duas unidades.
+- Texto do estado de sucesso verificado com contraste mínimo de 4,5:1,
+  considerando a camada mais clara do gradiente e os fundos translúcidos.
+- Spinner respeita a preferência de redução de movimento.
+
+Validações: `pnpm lint`, `pnpm build` e `pnpm test` aprovados (52 testes
+unitários). `pnpm exec playwright test --workers=2` aprovado (12 testes nos
+projetos Chromium desktop e WebKit mobile), cobrindo estados, teclado, retry,
+grid, overflow, contraste e ausência de chamadas Open-Meteo. Os testes de layout
+geram screenshots no diretório de resultados do Playwright.
+Essa revisão não substitui avaliação manual com leitores de tela nem certifica
+conformidade WCAG integral.
+
 ### Estrutura
 
 ```text

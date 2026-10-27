@@ -16,6 +16,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-night-900 via-night-800 to-night-900 text-slate-100">
+      <a
+        href="#main-content"
+        className="sr-only z-10 rounded-lg bg-accent-400 px-4 py-3 font-semibold text-night-900 focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        Pular para o conteúdo
+      </a>
       <header className="border-b border-white/10 bg-night-900/80">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:items-end">
           <div className="shrink-0">
@@ -31,7 +37,11 @@ export default function App() {
           <UnitToggle unit={unit} onChange={setUnit} />
         </div>
       </header>
-      <main id="main-content" className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto max-w-6xl space-y-6 px-4 py-8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-400 sm:px-6"
+      >
         <DemoControls status={status} onChange={preview} />
         {status === 'idle' && (
           <EmptyState
@@ -51,6 +61,10 @@ export default function App() {
         )}
         {data && (
           <>
+            <p role="status" className="sr-only">
+              Clima de {data.city?.name ?? 'sua localização'} carregado. Previsão de cinco dias
+              disponível.
+            </p>
             <CurrentWeather city={data.city} current={data.current} unit={unit} />
             <ForecastList forecast={data.forecast} unit={unit} />
           </>

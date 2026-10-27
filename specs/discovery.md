@@ -45,6 +45,15 @@ As probabilidades e os impactos são estimativas para a v1 e devem ser revistos 
 - Antes da publicação, validar condições de uso, atribuição exigida e limites de requisição da Open-Meteo. **Impacto se não validado:** risco de uso incompatível com as condições do provedor ou de indisponibilidade por limite.
 - Definir o provedor de hospedagem e revisar a meta de disponibilidade quando a implantação for escolhida. **Impacto se não definido:** não é possível estabelecer ou medir um SLO de disponibilidade da aplicação.
 
+## Personas e Objetivos
+
+Personas hipotéticas para orientar a spec; as métricas abaixo são propostas para validação em testes de usabilidade, não resultados de pesquisa.
+
+| Persona | Objetivo principal | Contexto de uso | Métrica de sucesso proposta |
+| --- | --- | --- | --- |
+| **Decisor do dia a dia** | Consultar rapidamente o clima atual para decidir o que vestir ou levar antes de sair. | Principalmente mobile, em consultas breves antes de um deslocamento. | Em um teste, identifica a condição e a temperatura da cidade desejada em até 30 segundos, sem confundir a unidade. |
+| **Viajante planejador** | Planejar roupas e atividades com base nas condições dos próximos cinco dias no destino. | Desktop ao organizar a viagem; mobile durante o deslocamento. | Em um teste, encontra o destino correto e identifica mínimas, máximas e probabilidade de chuva dos cinco dias em até 2 minutos. |
+
 ## Decisões para v1
 
 - **Público e uso:** qualquer pessoa que queira consultar rapidamente o clima de uma cidade e planejar os próximos dias.

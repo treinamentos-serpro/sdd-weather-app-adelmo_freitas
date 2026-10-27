@@ -94,6 +94,78 @@ describe('App com Open-Meteo', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it('permite retry manual quando a consulta de forecast falha', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ results: [city] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(forecast), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    search('São Paulo');
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('Falha ao consultar o clima.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await waitFor(() => expect(screen.getByText('22,4 °C')).toBeVisible());
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[1][0]).toContain('/v1/forecast');
+    expect(fetchMock.mock.calls[2][0]).toContain('/v1/forecast');
+  });
+
+  it('mantém homônimos distinguíveis e consulta somente a cidade selecionada', async () => {
+    const illinois = {
+      ...city,
+      id: 2,
+      name: 'Springfield',
+      admin1: 'Illinois',
+      country: 'Estados Unidos',
+      latitude: 39.8,
+      longitude: -89.6,
+    };
+    const ohio = {
+      ...illinois,
+      id: 3,
+      admin1: 'Ohio',
+      latitude: 39.96,
+      longitude: -83,
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ results: [illinois, ohio] }), { status: 200 }),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify(forecast), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    search('Springfield');
+    expect(
+      await screen.findByRole('button', { name: 'Selecionar Springfield, Illinois, Estados Unidos' }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Selecionar Springfield, Ohio, Estados Unidos' }),
+    ).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Selecionar Springfield, Ohio, Estados Unidos' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', {
+          name: 'Clima atual · Springfield, Ohio, Estados Unidos',
+        }),
+      ).toBeVisible(),
+    );
+    expect(new URL(fetchMock.mock.calls[1][0] as string).searchParams.get('latitude')).toBe(
+      '39.96',
+    );
+  });
+
   it('valida busca vazia sem chamar a rede', () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

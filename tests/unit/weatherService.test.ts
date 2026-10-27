@@ -292,6 +292,51 @@ describe('getWeather', () => {
       message: 'Falha de rede.',
     });
   });
+
+  it('mantém os dados meteorológicos quando o código WMO é desconhecido', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            timezone: 'UTC',
+            current: {
+              time: '2026-10-27T14:00',
+              temperature_2m: 22,
+              apparent_temperature: 22,
+              weather_code: 999,
+              relative_humidity_2m: 50,
+              wind_speed_10m: 4,
+            },
+            daily: {
+              time: dates,
+              weather_code: [999, 0, 0, 0, 0],
+              temperature_2m_min: [10, 10, 10, 10, 10],
+              temperature_2m_max: [20, 20, 20, 20, 20],
+              precipitation_probability_max: [0, 0, 0, 0, 0],
+            },
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+
+    const data = await getWeather(city);
+
+    expect(data.current).toMatchObject({
+      temperatureC: 22,
+      weatherCode: 999,
+      condition: 'Condição indisponível',
+    });
+    expect(data.forecast[0]).toMatchObject({
+      available: true,
+      weatherCode: 999,
+      condition: 'Condição indisponível',
+      minTemperatureC: 10,
+      maxTemperatureC: 20,
+      precipitationProbabilityPercent: 0,
+    });
+  });
 });
 
 describe('fetchWithTimeout', () => {

@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: task-prompt
 description: 'Decompõe o plano técnico em um backlog de tarefas granulares e testáveis.'
+disable-model-invocation: true
 ---
-
 # Prompt — Quebrar em Tarefas
 
 Você é o **Task Agent**. Use `plans/weather-app-plan.md` como entrada.

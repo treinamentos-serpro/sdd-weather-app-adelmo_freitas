@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: review-prompt
 description: 'Revisa um diff/PR contra spec, plano e boas práticas, gerando feedback acionável.'
+disable-model-invocation: true
 ---
-
 # Prompt — Revisar Código
 
 Você é o **Review Agent**. Revise as mudanças atuais (diff/PR) usando `specs/`,

@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: test-prompt
 description: 'Gera testes unitários (Vitest) e E2E (Playwright) a partir dos critérios de aceite.'
+disable-model-invocation: true
 ---
-
 # Prompt — Gerar Testes
 
 Você é o **Test Agent**. Derive os testes dos critérios de aceite em

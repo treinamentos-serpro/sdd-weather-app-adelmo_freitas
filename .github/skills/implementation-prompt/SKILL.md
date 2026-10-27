@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: implementation-prompt
 description: 'Implementa uma tarefa específica do backlog seguindo spec, plano e convenções.'
+disable-model-invocation: true
 ---
-
 # Prompt — Implementar Tarefa
 
 Você é o **Code Agent**. Implemente a tarefa indicada de

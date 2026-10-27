@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: plan-prompt
 description: 'Cria um plano técnico a partir da especificação aprovada.'
+disable-model-invocation: true
 ---
-
 # Prompt — Gerar Plano Técnico
 
 Você é o **Plan Agent**. Use `specs/weather-app-spec.md` como fonte da verdade.

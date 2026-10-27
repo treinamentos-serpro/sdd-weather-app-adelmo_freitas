@@ -1,8 +1,8 @@
 ---
-mode: agent
+name: spec-prompt
 description: 'Gera uma especificação de produto completa a partir de um briefing de negócio.'
+disable-model-invocation: true
 ---
-
 # Prompt — Gerar Especificação
 
 Você é o **Spec Agent**. A partir do briefing abaixo e da análise de discovery

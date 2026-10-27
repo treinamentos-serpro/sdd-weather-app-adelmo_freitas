@@ -2,57 +2,62 @@
 
 ## Contexto
 
-Aplicação de previsão do tempo para buscar cidades, consultar o clima atual e ver uma previsão de cinco dias. A interface deve funcionar em dispositivos móveis e permitir alternar entre Celsius e Fahrenheit.
+Aplicação web para consultar o clima atual e uma previsão curta de uma cidade, com foco em uma experiência simples em dispositivos móveis. A pessoa usuária pode buscar uma cidade, usar a localização atual e alternar a unidade de temperatura.
 
-Em esclarecimentos anteriores, você confirmou estas decisões adicionais: usar a API de previsão do Open-Meteo (`https://api.open-meteo.com/v1/forecast`), considerar cinco dias como hoje e os quatro dias seguintes, oferecer geolocalização além da busca digitada, usar Celsius como unidade inicial e pt-BR como idioma da interface. Elas não constam no briefing reproduzido nesta solicitação.
+Para a v1, ficam registradas as decisões já confirmadas: usar Open-Meteo para geocodificação e previsão, considerar hoje e os quatro dias seguintes, oferecer geolocalização sem solicitá-la automaticamente, iniciar em Celsius e apresentar a interface em pt-BR.
 
 ## Requisitos Funcionais
 
-- **RF1 — Buscar cidades:** permitir que a pessoa usuária informe uma cidade e escolha um resultado para consultar.
-- **RF2 — Clima atual:** apresentar as condições atuais para a cidade escolhida.
-- **RF3 — Previsão:** apresentar a previsão de hoje e dos quatro dias seguintes para a cidade escolhida.
-- **RF4 — Unidade:** permitir alternar entre Celsius e Fahrenheit e atualizar os valores exibidos.
-- **RF5 — Geolocalização:** oferecer uma opção para obter o clima da localização atual, sujeita à permissão do dispositivo ou navegador.
-
-> Os detalhes de busca, dados meteorológicos exibidos e comportamento quando não há permissão ainda precisam ser definidos nas perguntas em aberto.
+- **RF1 — Buscar cidades:** permitir busca enviada por nome e seleção de um resultado. Exibir cidade, região/estado e país para distinguir homônimos.
+- **RF2 — Clima atual:** exibir temperatura, sensação térmica, condição, umidade e velocidade do vento para a cidade selecionada.
+- **RF3 — Previsão:** exibir hoje e os quatro dias seguintes, com resumo diário, temperaturas mínima/máxima, condição e probabilidade de precipitação.
+- **RF4 — Unidade:** permitir alternar entre Celsius e Fahrenheit; aplicar a escolha a todas as temperaturas exibidas e mantê-la localmente no mesmo dispositivo.
+- **RF5 — Geolocalização:** oferecer uma ação explícita para consultar a localização atual, mediante permissão. Manter a busca por cidade como alternativa se a permissão for negada ou falhar.
+- **RF6 — Estados da interface:** apresentar estados de carregamento, erro e busca sem resultados. Em caso de erro, permitir tentar novamente.
 
 ## Requisitos Não-Funcionais
 
-- **RNF1 — Uso em dispositivos móveis (explícito):** a aplicação deve ser utilizável em dispositivos móveis. Larguras suportadas, critérios de layout e navegadores ainda não foram definidos.
-- **RNF2 — Responsividade (a confirmar):** adaptar o conteúdo e os controles a diferentes tamanhos de tela, sem prejudicar a consulta da previsão.
-- **RNF3 — Acessibilidade (a confirmar):** definir requisitos para teclado, leitores de tela, contraste e controles de toque.
-- **RNF4 — Desempenho (a confirmar):** definir tempos aceitáveis para buscar uma cidade e carregar o clima e a previsão.
-- **RNF5 — Resiliência (a confirmar):** definir o comportamento durante falhas de rede ou indisponibilidade da API.
-
-Os RNFs marcados como “a confirmar” são questões para validação, não metas já aprovadas.
+- **RNF1 — Responsividade:** suportar larguras a partir de 320 px até desktop, sem rolagem horizontal para o conteúdo principal.
+- **RNF2 — Compatibilidade:** suportar as duas versões estáveis mais recentes de Chrome, Safari, Firefox e Edge.
+- **RNF3 — Acessibilidade:** adotar WCAG 2.2 nível AA como meta; oferecer navegação por teclado, nomes acessíveis e contraste adequado.
+- **RNF4 — Performance:** buscar renderização inicial em até 2 s e resposta de busca/previsão em até 3 s no percentil 95, em conexão estável. A medição da resposta inclui o tempo do provedor externo.
+- **RNF5 — Privacidade:** não exigir conta. Solicitar geolocalização somente após ação da pessoa usuária; não armazenar coordenadas nem histórico no app. Enviar coordenadas ao provedor apenas para obter os dados solicitados.
+- **RNF6 — Disponibilidade e resiliência:** não estabelecer meta numérica de disponibilidade na v1. Quando a API ou a rede falhar, informar a indisponibilidade e oferecer nova tentativa; não apresentar dados antigos como atuais.
+- **RNF7 — Localização:** usar pt-BR para textos e formatos de data, e o fuso horário da cidade selecionada para as datas da previsão.
 
 ## Riscos
 
-As probabilidades e os impactos abaixo são estimativas iniciais para discussão, não dados medidos.
+As probabilidades e os impactos são estimativas para a v1 e devem ser revistos após observar uso e disponibilidade do provedor.
 
 | Risco | Probabilidade | Impacto | Mitigação proposta |
 | --- | --- | --- | --- |
-| A API ficar lenta, indisponível ou limitar solicitações. | Média | Alto | Tratar falhas, comunicar o problema e oferecer nova tentativa; avaliar cache após definir requisitos de atualização. |
-| A busca retornar cidades homônimas ou uma localização incorreta. | Média | Alto | Confirmar cidade antes de consultar e avaliar apresentar estado/região e país nos resultados. |
-| A pessoa usuária negar a permissão de geolocalização ou o dispositivo não fornecer uma posição útil. | Média | Médio | Manter a busca digitada disponível e explicar que a localização não pôde ser obtida. |
-| Conexão móvel instável impedir a atualização dos dados. | Média | Médio | Definir estados de carregamento e falha e avaliar exibir dados recentes armazenados, caso cache seja aprovado. |
-| A alternância de unidade produzir valores inconsistentes entre clima atual e previsão. | Baixa | Alto | Aplicar uma única preferência de unidade a todos os valores e validar conversões com testes. |
+| API lenta, indisponível ou sujeita a limites de uso. | Média | Alto | Tratar erro e permitir nova tentativa; validar limites e condições de uso antes de publicar. |
+| Seleção de cidade homônima ou incorreta. | Média | Alto | Mostrar região/estado e país e exigir seleção explícita quando houver múltiplos resultados. |
+| Permissão de geolocalização negada ou posição indisponível. | Média | Médio | Não solicitar automaticamente; preservar busca digitada e explicar como continuar. |
+| Rede móvel instável ou sem conexão. | Média | Médio | Mostrar carregamento/erro e ação de retry; declarar que a v1 requer conexão e não tem modo offline. |
+| Diferenças de unidade ou fuso causarem leitura incorreta. | Baixa | Alto | Centralizar a preferência de unidade e usar o fuso retornado para a cidade; validar conversões e datas. |
+| Compartilhamento inesperado de coordenadas. | Baixa | Alto | Solicitar localização apenas por ação explícita, não persistir coordenadas e limitar o envio à consulta do clima. |
 
 ## Perguntas em Aberto
 
-1. **Como será feita a busca de cidades e qual fonte/endpoint de geocodificação será usado?** A URL confirmada é de previsão; sem geocodificação, não está definido como converter o nome digitado em coordenadas. **Impacto:** bloqueia a busca por nome e a seleção de cidades.
-2. **Quais resultados e dados meteorológicos serão exibidos?** O briefing não especifica temperatura, condição, umidade, vento ou outros campos. **Impacto:** define o conteúdo, o layout e os dados solicitados à API.
-3. **Como a busca deve tratar cidades homônimas e quais informações identificam cada resultado?** **Impacto:** pode levar à consulta do local errado.
-4. **Como a previsão de cinco dias será apresentada: um resumo diário ou detalhes por horário?** A janela foi definida como hoje + quatro dias, mas não o nível de detalhe. **Impacto:** altera o modelo de dados e a interface.
-5. **Quando e como solicitar geolocalização, e o que mostrar se a permissão for negada ou a posição falhar?** **Impacto:** afeta permissões, fluxo inicial e alternativa para obter uma cidade.
-6. **A preferência de unidade deve persistir entre visitas ou sessões?** Celsius é a unidade inicial, mas a persistência não foi decidida. **Impacto:** determina se é necessário armazenar a escolha localmente.
-7. **A interface deve funcionar offline ou mostrar dados em cache? Por quanto tempo os dados podem ser considerados recentes?** **Impacto:** define estratégia de cache, atualização e apresentação de dados possivelmente desatualizados.
-8. **Favoritos ou histórico de cidades fazem parte do escopo?** **Impacto:** acrescenta fluxos de navegação e possível persistência local.
-9. **Quais metas verificáveis de desempenho, acessibilidade e suporte a navegadores/dispositivos são esperadas?** **Impacto:** sem critérios, não é possível estabelecer limites nem validar esses aspectos de forma consistente.
-10. **Que estados e ações devem existir durante carregamento, erro ou ausência de resultados?** **Impacto:** deixa indefinida a recuperação de falhas e a orientação à pessoa usuária.
+- Não há decisões de produto pendentes que bloqueiem o escopo v1.
+- Antes da publicação, validar condições de uso, atribuição exigida e limites de requisição da Open-Meteo. **Impacto se não validado:** risco de uso incompatível com as condições do provedor ou de indisponibilidade por limite.
+- Definir o provedor de hospedagem e revisar a meta de disponibilidade quando a implantação for escolhida. **Impacto se não definido:** não é possível estabelecer ou medir um SLO de disponibilidade da aplicação.
+
+## Decisões para v1
+
+- **Público e uso:** qualquer pessoa que queira consultar rapidamente o clima de uma cidade e planejar os próximos dias.
+- **Busca:** usar o serviço de geocodificação da Open-Meteo; buscar após envio do formulário, sem autosuggest. Distinguir resultados por cidade, região/estado e país.
+- **Clima atual:** temperatura, sensação térmica, condição, umidade e vento em km/h.
+- **Previsão:** resumo diário para hoje + quatro dias, com mínima/máxima, condição e probabilidade de precipitação. Sem previsão por hora.
+- **Unidades e atualização:** Celsius por padrão; alternância para Fahrenheit aplicada a todas as temperaturas e preferência salva no armazenamento local do browser. Atualizar ao selecionar a cidade ou ao tentar novamente; sem atualização automática em background.
+- **Localização:** geolocalização apenas após ação explícita. Não guardar coordenadas; permitir busca manual caso falhe.
+- **Idioma e tempo:** interface pt-BR e datas no fuso horário da cidade consultada.
+- **Rede e persistência:** conexão é obrigatória. Sem suporte offline, cache de previsão, conta, favoritos, histórico ou alertas na v1.
+- **Disponibilidade:** sem SLO numérico até escolher a hospedagem; falhas da API devem ser comunicadas e permitir retry.
 
 ## Suposições
 
-- Para atualizar informações de uma API remota, a aplicação precisa de conexão com a internet; comportamento offline não foi confirmado.
-- O uso de geolocalização depende de permissão do navegador ou dispositivo. A busca digitada permanece uma forma prevista de escolher a cidade.
-- Os requisitos não-funcionais marcados como “a confirmar” são propostas para discussão, não compromissos de produto.
+- A aplicação é um web app para browsers modernos, sem requisito de instalação como PWA.
+- A Open-Meteo fornece os dados necessários para a experiência inicial; condições, limites e eventual atribuição serão verificados antes da publicação.
+- Não haverá backend próprio nem dados de usuário persistidos no servidor na v1.

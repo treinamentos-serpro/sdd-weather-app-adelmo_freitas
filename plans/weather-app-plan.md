@@ -241,6 +241,20 @@ O exemplo omite três dos cinco dias para ser conciso. O service mapeia `current
 
 ## State Management
 
+### Recorte de UI — P6
+
+Antes da integração HTTP, `useWeatherDemo` coordena uma fixture de datas fixas,
+com estado inicial `idle`, busca apenas da cidade de exemplo e latência simulada
+de 500 ms com cancelamento do timer. Um controle de demonstração explícito permite
+exercitar todos os estados sem simular uma falha real do provedor. `App` mantém
+a unidade em memória e faz a conversão somente na apresentação.
+Os componentes usam os nomes solicitados no workshop (`SearchBar`,
+`CurrentWeather`, `ForecastCard` e estados separados), preservando a divisão de
+responsabilidades. Os helpers ficam em `lib/temperature`, `lib/weatherCodes` e
+`lib/format`. A integração de dados e a persistência abaixo permanecem futuras.
+
+### Aplicação integrada
+
 - Manter o estado da tela em `useWeatherApp`; não introduzir store global para uma única tela e um único fluxo de consulta.
 - Modelar busca e clima com estados explícitos `idle`, `loading`, `success`, `error` e `empty` onde aplicável. `empty` é próprio da busca sem resultados; uma previsão sem dias completos continua sendo uma consulta bem-sucedida com dias marcados como indisponíveis.
 - Guardar em memória os resultados de geocoding para seleção explícita e os dados da consulta corrente. Ao iniciar outra busca ou seleção, invalidar os dados anteriores visíveis e cancelar/ignorar uma requisição substituída.

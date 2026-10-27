@@ -80,6 +80,29 @@ pnpm test:e2e        # testes E2E (Playwright)
 
 ## Arquitetura do app
 
+### Protótipo de UI (P6.1–P6.8)
+
+Execute `pnpm dev` para abrir a demo sem API. A tela começa no estado inicial;
+busque **São Paulo** (aceita variações de caixa, acentuação e espaços externos)
+para carregar o exemplo após 500 ms. Outros nomes exibem ausência de resultados,
+sem atribuir os mesmos dados a cidades diferentes.
+
+O seletor **Simular estado** exercita inicial, carregando, vazio, erro e sucesso.
+O carregamento simulado termina após 500 ms; o retry do erro simulado carrega o
+exemplo. Nenhuma busca faz chamadas HTTP. A unidade vive apenas na sessão de UI
+e não altera o objeto original.
+
+A fixture em [src/fixtures/weather.ts](src/fixtures/weather.ts) tem datas fixas
+de 27 a 31/10/2026 e não representa o clima real ou a data de hoje.
+Precipitação (mm) e pressão (hPa) são extensões opcionais do modelo; valores
+ausentes aparecem como indisponíveis, nunca como zero.
+
+Esta etapa não implementa geocoding, seleção de resultados, geolocalização ou
+persistência da unidade. Esses fluxos continuam previstos para a integração
+com API; o hook de demo deve ser substituído pela orquestração do plano.
+
+### Estrutura
+
 ```text
 src/
 ├── components/      # apresentação (um componente por arquivo)

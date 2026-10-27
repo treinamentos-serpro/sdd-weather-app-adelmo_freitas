@@ -106,6 +106,8 @@ export interface CurrentWeather {
   condition: string; // Descrição pt-BR derivada do código WMO.
   relativeHumidityPercent: number; // Umidade relativa em percentual.
   windSpeedKmh: number; // Velocidade do vento em km/h.
+  precipitationMm?: number | null; // Precipitação atual em mm, quando disponível.
+  pressureHpa?: number | null; // Pressão atmosférica em hPa, quando disponível.
 }
 
 export interface ForecastDay {

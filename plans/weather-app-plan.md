@@ -178,7 +178,7 @@ flowchart TD
 - **Método:** `GET`
 - **Parâmetros usados:**
   - `name`: texto de busca após trim; preservar caracteres acentuados, apóstrofos e hífens e deixar `URLSearchParams` fazer o escaping.
-  - `count=10`: limitar o número inicial de opções sem selecionar resultado implicitamente.
+  - `count=5`: limitar o número inicial de opções sem selecionar resultado implicitamente.
   - `language=pt`: solicitar nomes localizados em português quando disponíveis.
   - `format=json`: resposta JSON.
 - **Resposta resumida:**

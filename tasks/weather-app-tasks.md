@@ -97,7 +97,7 @@ lançamento.
 - **Requisitos:** FR-01, FR-06; AC-01.1, AC-01.2, AC-01.3, AC-01.4, AC-01.6,
   AC-01.7, AC-06.2, AC-06.3, AC-06.4.
 - **Critérios de aceite:**
-  - Envia `name` após trim, `count=10`, `language=pt` e `format=json` para a
+  - Envia `name` após trim, `count=5`, `language=pt` e `format=json` para a
     URL definida no plano; `URLSearchParams` preserva e escapa caracteres
     acentuados, espaços, apóstrofos e hífens.
   - Mapeia identificador, nome, país e coordenadas para `City`; região, código

@@ -57,7 +57,7 @@ describe('searchCities', () => {
     const [url] = fetchMock.mock.calls[0] as [string];
     expect(url).toContain('name=S%C3%A3o%20Jo%C3%A3o-d%E2%80%99Oeste');
     expect(new URL(url).searchParams.get('name')).toBe('São João-d’Oeste');
-    expect(url).toContain('count=10&language=pt&format=json');
+    expect(url).toContain('count=5&language=pt&format=json');
   });
 
   it('permite resultados sem os campos opcionais e retorna lista vazia quando não há locais', async () => {

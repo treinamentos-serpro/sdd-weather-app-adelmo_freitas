@@ -156,7 +156,7 @@ export async function searchCities(name: string, signal?: AbortSignal): Promise<
 
   const url =
     `${GEOCODING_ENDPOINT}?name=${encodeURIComponent(query)}` +
-    '&count=10&language=pt&format=json';
+    '&count=5&language=pt&format=json';
 
   const { response, payload } = await fetchWithTimeout(async (requestSignal) => {
     const response = await fetch(url, { signal: requestSignal });

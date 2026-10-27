@@ -241,7 +241,7 @@ O exemplo omite três dos cinco dias para ser conciso. O service mapeia `current
 
 ## State Management
 
-### Recorte de UI — P6
+### Recorte de UI — P6 (etapa histórica)
 
 Antes da integração HTTP, `useWeatherDemo` coordena uma fixture de datas fixas,
 com estado inicial `idle`, busca apenas da cidade de exemplo e latência simulada
@@ -251,7 +251,8 @@ a unidade em memória e faz a conversão somente na apresentação.
 Os componentes usam os nomes solicitados no workshop (`SearchBar`,
 `CurrentWeather`, `ForecastCard` e estados separados), preservando a divisão de
 responsabilidades. Os helpers ficam em `lib/temperature`, `lib/weatherCodes` e
-`lib/format`. A integração de dados e a persistência abaixo permanecem futuras.
+`lib/format`. A integração de dados foi implementada no recorte P7; a
+persistência da unidade continua futura.
 
 ### Aplicação integrada
 

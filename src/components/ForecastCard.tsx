@@ -27,7 +27,7 @@ export default function ForecastCard({ day, unit }: ForecastCardProps) {
           <span aria-hidden="true" className="my-4 block text-4xl text-sun">
             {getWeatherCondition(weatherCode).icon}
           </span>
-          <p className="min-h-12 text-sm text-slate-200">
+          <p className="min-h-12 break-words text-sm text-slate-200">
             {day.condition || getWeatherCondition(weatherCode).description}
           </p>
           <dl className="mt-3 space-y-2 text-sm">

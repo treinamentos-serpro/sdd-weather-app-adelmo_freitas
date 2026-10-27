@@ -1,18 +1,18 @@
 import { useState } from 'react';
+import CityResults from './components/CityResults';
 import CurrentWeather from './components/CurrentWeather';
-import DemoControls from './components/DemoControls';
 import ForecastList from './components/ForecastList';
 import SearchBar from './components/SearchBar';
 import EmptyState from './components/states/EmptyState';
 import ErrorState from './components/states/ErrorState';
 import LoadingState from './components/states/LoadingState';
 import UnitToggle from './components/UnitToggle';
-import useWeatherDemo from './hooks/useWeatherDemo';
+import useWeather from './hooks/useWeather';
 import type { Unit } from './types/weather';
 
 export default function App() {
   const [unit, setUnit] = useState<Unit>('celsius');
-  const { status, data, search, retry, preview } = useWeatherDemo();
+  const { status, data, cities, error, search, selectCity, retry } = useWeather();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-night-900 via-night-800 to-night-900 text-slate-100">
@@ -42,22 +42,19 @@ export default function App() {
         tabIndex={-1}
         className="mx-auto max-w-6xl space-y-6 px-4 py-8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-400 sm:px-6"
       >
-        <DemoControls status={status} onChange={preview} />
         {status === 'idle' && (
           <EmptyState
             title="Como está o clima por aí?"
-            hint="Busque São Paulo para explorar o exemplo. Outras cidades não possuem dados nesta demo."
+            hint="Busque uma cidade para consultar o clima atual e a previsão dos próximos cinco dias."
           />
         )}
         {status === 'loading' && <LoadingState />}
-        {status === 'empty' && (
-          <EmptyState hint="Esta demo só contém São Paulo. Busque esse nome para ver o clima de exemplo." />
-        )}
+        {status === 'empty' && <EmptyState />}
         {status === 'error' && (
-          <ErrorState
-            message="Falha simulada para testar a interface. Tente novamente para carregar os dados de exemplo."
-            onRetry={retry}
-          />
+          <ErrorState message={error ?? 'Não foi possível carregar o clima.'} onRetry={retry} />
+        )}
+        {status === 'success' && !data && cities.length > 0 && (
+          <CityResults cities={cities} onSelectCity={selectCity} />
         )}
         {data && (
           <>
@@ -71,7 +68,7 @@ export default function App() {
         )}
       </main>
       <footer className="px-4 pb-8 text-center text-sm text-slate-300">
-        Protótipo de UI · Sem consultas meteorológicas reais.
+        Dados meteorológicos fornecidos pela Open-Meteo.
       </footer>
     </div>
   );

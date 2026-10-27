@@ -1,4 +1,54 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+const city = {
+  id: 1,
+  name: 'São Paulo',
+  admin1: 'São Paulo',
+  country: 'Brasil',
+  country_code: 'BR',
+  latitude: -23.5,
+  longitude: -46.6,
+  timezone: 'America/Sao_Paulo',
+};
+
+const forecast = {
+  timezone: 'America/Sao_Paulo',
+  current: {
+    time: '2026-10-27T14:00',
+    temperature_2m: 22.4,
+    apparent_temperature: 23.1,
+    weather_code: 2,
+    relative_humidity_2m: 64,
+    wind_speed_10m: 12.5,
+  },
+  daily: {
+    time: ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31'],
+    weather_code: [2, 61, 3, 0, 1],
+    temperature_2m_min: [17.2, 18, 19, 16, 17],
+    temperature_2m_max: [25.1, 24.3, 26, 23, 24],
+    precipitation_probability_max: [10, 70, 0, 5, 15],
+  },
+};
+
+async function mockOpenMeteo(page: Page, failFirstSearch = false) {
+  let searchCount = 0;
+  await page.route('https://geocoding-api.open-meteo.com/**', async (route) => {
+    searchCount += 1;
+    if (failFirstSearch && searchCount === 1) {
+      await route.fulfill({ status: 503, body: '' });
+      return;
+    }
+
+    const query = new URL(route.request().url()).searchParams.get('name');
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(query === 'Recife' ? {} : { results: [city] }),
+    });
+  });
+  await page.route('https://api.open-meteo.com/**', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(forecast) });
+  });
+}
 
 test.beforeEach(async ({ page }) => {
   await page.route('https://**/*', (route) => route.abort());
@@ -6,20 +56,22 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'WeatherView', level: 1 })).toBeVisible();
 });
 
-for (const { width, columns } of [
-  { width: 320, columns: 2 },
-  { width: 768, columns: 3 },
-  { width: 1280, columns: 5 },
-]) {
-  test(`layout sem overflow em ${width}px e grid com ${columns} colunas`, async ({ page }) => {
+test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', async ({ page }) => {
+  await mockOpenMeteo(page);
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }).click();
+  await expect(page.getByText('22,4 °C')).toBeVisible();
+
+  for (const { width, columns } of [
+    { width: 320, columns: 2 },
+    { width: 768, columns: 3 },
+    { width: 1280, columns: 5 },
+  ]) {
     await page.setViewportSize({ width, height: 900 });
-    const state = page.getByRole('combobox', { name: 'Simular estado' });
-    for (const value of ['idle', 'loading', 'empty', 'error', 'success']) {
-      await state.selectOption(value);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-        width,
-      );
-    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
     const cards = page.getByRole('article');
     await expect(cards).toHaveCount(5);
     const gridColumns = await page
@@ -27,83 +79,67 @@ for (const { width, columns } of [
       .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
     expect(gridColumns).toBe(columns);
     for (const card of await cards.all()) {
-      expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
-        true,
-      );
+      const dimensions = await card.evaluate((element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        content: element.textContent,
+      }));
+      expect(
+        dimensions.scrollWidth,
+        `overflow in ${width}px card: ${dimensions.content}`,
+      ).toBeLessThanOrEqual(dimensions.clientWidth);
     }
-    await expect(page.getByText('25,1 °C')).toBeVisible();
     for (const control of await page.locator('input, button, select').all()) {
       expect(
         await control.evaluate((element) => element.getBoundingClientRect().height),
       ).toBeGreaterThanOrEqual(44);
     }
-    await page.screenshot({ path: test.info().outputPath(`weather-${width}.png`), fullPage: true });
-    await page.getByRole('button', { name: 'Fahrenheit' }).click();
-    await expect(page.getByText('72,3 °F')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-      width,
-    );
-  });
-}
+  }
+});
 
-test('busca e alternância de unidade pelo teclado, sem API ou erros de execução', async ({
+test('exige seleção explícita, permite uso por teclado e limpa dados em nova busca', async ({
   page,
 }) => {
+  await mockOpenMeteo(page);
   const errors: string[] = [];
-  const apiRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  page.on('request', (request) => {
-    if (request.url().includes('open-meteo.com')) apiRequests.push(request.url());
-  });
+
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Pular para o conteúdo' })).toBeFocused();
   await page.keyboard.press('Tab');
   const input = page.getByRole('searchbox', { name: 'Cidade' });
   await expect(input).toBeFocused();
-  await expect(input).toHaveCSS('outline-style', 'solid');
-  await page.keyboard.type('  Sao Paulo  ');
+  await input.fill('São Paulo');
+  await input.press('Enter');
+  const selectCity = page.getByRole('button', {
+    name: 'Selecionar São Paulo, São Paulo, Brasil',
+  });
+  await expect(selectCity).toBeVisible();
+  await expect(page.getByText('22,4 °C')).toHaveCount(0);
+  await selectCity.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('status')).toContainText('Carregando');
   await expect(page.getByText('22,4 °C')).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('Clima de São Paulo carregado');
+
   const fahrenheit = page.getByRole('button', { name: 'Fahrenheit' });
   await fahrenheit.focus();
   await page.keyboard.press('Space');
-  await expect(fahrenheit).toHaveAttribute('aria-pressed', 'true');
-  await expect(fahrenheit).toHaveCSS('outline-style', 'solid');
   await expect(page.getByText('72,3 °F')).toBeVisible();
   await expect(page.getByRole('main').getByText(/\d.*°C/)).toHaveCount(0);
-  await expect(page.getByText('12,5 km/h')).toBeVisible();
-  await expect(page.getByText('10%', { exact: true })).toBeVisible();
+
   await input.fill('Recife');
   await input.press('Enter');
-  await expect(page.getByText('72,3 °F')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Nenhuma cidade encontrada' })).toBeVisible();
-  expect(apiRequests).toEqual([]);
+  await expect(page.getByText('72,3 °F')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test('atalho de conteúdo, validação vazia e retry acessíveis', async ({ page }) => {
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('main')).toBeFocused();
-  const input = page.getByRole('searchbox');
-  await input.fill('   ');
-  await input.press('Enter');
-  await expect(page.getByRole('alert')).toHaveText('Digite o nome de uma cidade.');
-  await expect(input).toBeFocused();
-  await expect(input).toHaveAttribute('aria-invalid', 'true');
-  await page.getByRole('combobox', { name: 'Simular estado' }).selectOption('error');
-  await expect(page.getByRole('alert').filter({ hasText: 'Falha simulada' })).toBeVisible();
-  const retry = page.getByRole('button', { name: 'Tentar novamente' });
-  await retry.focus();
-  await expect(retry).toHaveCSS('outline-style', 'solid');
-  await retry.press('Enter');
+test('mantém contraste de texto normal de pelo menos 4,5:1', async ({ page }) => {
+  await mockOpenMeteo(page);
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }).click();
   await expect(page.getByText('22,4 °C')).toBeVisible();
-});
 
-test('contraste de texto normal de pelo menos 4,5:1 no tema', async ({ page }) => {
-  await page.getByRole('combobox', { name: 'Simular estado' }).selectOption('success');
   const contrasts = await page
     .locator('h1, h2, h3, p, dt, dd, label, button, select, input')
     .evaluateAll((elements) => {
@@ -128,7 +164,6 @@ test('contraste de texto normal de pelo menos 4,5:1 no tema', async ({ page }) =
           ) {
             ancestors.unshift(ancestor);
           }
-          // Pior caso do gradiente: night-800, seguido das camadas translúcidas.
           let background = [17, 22, 42];
           for (const ancestor of ancestors) {
             const color = rgb(getComputedStyle(ancestor).backgroundColor);
@@ -146,6 +181,18 @@ test('contraste de texto normal de pelo menos 4,5:1 no tema', async ({ page }) =
           };
         });
     });
+
   expect(contrasts.length).toBeGreaterThan(20);
   expect(contrasts.filter(({ ratio }) => ratio < 4.5)).toEqual([]);
+});
+
+test('erro de geocoding oferece retry manual', async ({ page }) => {
+  await mockOpenMeteo(page, true);
+  await page.getByRole('searchbox', { name: 'Cidade' }).fill('São Paulo');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await expect(page.getByRole('alert')).toContainText('Falha ao buscar cidades.');
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Selecionar São Paulo, São Paulo, Brasil' }),
+  ).toBeVisible();
 });

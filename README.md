@@ -80,26 +80,25 @@ pnpm test:e2e        # testes E2E (Playwright)
 
 ## Arquitetura do app
 
-### Protótipo de UI (P6.1–P6.8)
+### Protótipo de UI (P6.1–P6.8) — etapa histórica
 
-Execute `pnpm dev` para abrir a demo sem API. A tela começa no estado inicial;
-busque **São Paulo** (aceita variações de caixa, acentuação e espaços externos)
-para carregar o exemplo após 500 ms. Outros nomes exibem ausência de resultados,
-sem atribuir os mesmos dados a cidades diferentes.
+O protótipo intermediário usava uma fixture em
+[src/fixtures/weather.ts](src/fixtures/weather.ts), com datas fixas de 27 a
+31/10/2026. Não representava o clima real nem fazia chamadas HTTP. A fixture
+permanece no repositório como referência do workshop; a aplicação atual usa a
+integração descrita abaixo.
 
-O seletor **Simular estado** exercita inicial, carregando, vazio, erro e sucesso.
-O carregamento simulado termina após 500 ms; o retry do erro simulado carrega o
-exemplo. Nenhuma busca faz chamadas HTTP. A unidade vive apenas na sessão de UI
-e não altera o objeto original.
+### Integração Open-Meteo (P7.1–P7.5)
 
-A fixture em [src/fixtures/weather.ts](src/fixtures/weather.ts) tem datas fixas
-de 27 a 31/10/2026 e não representa o clima real ou a data de hoje.
-Precipitação (mm) e pressão (hPa) são extensões opcionais do modelo; valores
-ausentes aparecem como indisponíveis, nunca como zero.
+Execute `pnpm dev` para iniciar a aplicação. Envie uma busca manual, escolha
+explicitamente uma das cidades retornadas e consulte o clima atual e a previsão
+de cinco dias. A camada de serviços encapsula as APIs de geocoding e forecast,
+com timeout de 10 segundos; falhas são exibidas com retry manual. Celsius e
+Fahrenheit são alternados na interface sem nova consulta.
 
-Esta etapa não implementa geocoding, seleção de resultados, geolocalização ou
-persistência da unidade. Esses fluxos continuam previstos para a integração
-com API; o hook de demo deve ser substituído pela orquestração do plano.
+O projeto usa Open-Meteo sem API key. A unidade permanece no estado de UI durante
+a sessão; persistência de preferência, geolocalização e demais itens do backlog
+continuam fora desta integração.
 
 #### Revisão de UI e acessibilidade — P6.8
 

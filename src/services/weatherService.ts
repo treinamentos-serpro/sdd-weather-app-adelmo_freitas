@@ -195,10 +195,15 @@ export async function searchCities(name: string, signal?: AbortSignal): Promise<
   return payload.results.map(mapCity);
 }
 
-export async function getWeather(city: City, signal?: AbortSignal): Promise<WeatherData> {
+async function fetchWeather(
+  latitude: number,
+  longitude: number,
+  city: City | null,
+  signal?: AbortSignal,
+): Promise<WeatherData> {
   const params = new URLSearchParams({
-    latitude: String(city.latitude),
-    longitude: String(city.longitude),
+    latitude: String(latitude),
+    longitude: String(longitude),
     current:
       'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,surface_pressure,precipitation,weather_code',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
@@ -233,4 +238,16 @@ export async function getWeather(city: City, signal?: AbortSignal): Promise<Weat
     current: mapCurrent(payload.current),
     forecast: mapForecast(payload.daily),
   };
+}
+
+export function getWeather(city: City, signal?: AbortSignal): Promise<WeatherData> {
+  return fetchWeather(city.latitude, city.longitude, city, signal);
+}
+
+export function getWeatherForCoordinates(
+  latitude: number,
+  longitude: number,
+  signal?: AbortSignal,
+): Promise<WeatherData> {
+  return fetchWeather(latitude, longitude, null, signal);
 }

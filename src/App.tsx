@@ -32,7 +32,7 @@ function getStoredUnit(): Unit {
 
 export default function App() {
   const [unit, setUnit] = useState<Unit>(getStoredUnit);
-  const { status, data, cities, error, search, selectCity, retry } = useWeather();
+  const { status, data, cities, error, search, selectCity, locate, retry } = useWeather();
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function App() {
             </h1>
             <p className="mt-1 text-sm text-slate-300">Seu dia, com mais clareza.</p>
           </div>
-          <SearchBar onSearch={search} disabled={status === 'loading'} />
+          <SearchBar onSearch={search} onLocate={locate} disabled={status === 'loading'} />
           <UnitToggle unit={unit} onChange={setUnit} />
         </div>
       </header>

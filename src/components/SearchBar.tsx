@@ -2,10 +2,11 @@ import { useId, useRef, useState } from 'react';
 
 interface SearchBarProps {
   onSearch: (city: string) => void;
+  onLocate?: () => void;
   disabled?: boolean;
 }
 
-export default function SearchBar({ onSearch, disabled = false }: SearchBarProps) {
+export default function SearchBar({ onSearch, onLocate, disabled = false }: SearchBarProps) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [city, setCity] = useState('');
@@ -57,6 +58,16 @@ export default function SearchBar({ onSearch, disabled = false }: SearchBarProps
           Buscar
         </button>
       </div>
+      {onLocate && (
+        <button
+          type="button"
+          onClick={onLocate}
+          disabled={disabled}
+          className="mt-2 min-h-11 rounded-xl border border-white/20 bg-white/5 px-4 font-medium text-slate-100 transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Usar minha localização
+        </button>
+      )}
       {error && (
         <p id={`${id}-error`} role="alert" className="mt-2 text-sm text-rose-200">
           {error}

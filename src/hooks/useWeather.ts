@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { getWeather, searchCities, WeatherServiceError } from '../services/weatherService';
+import {
+  getWeather,
+  getWeatherForCoordinates,
+  searchCities,
+  WeatherServiceError,
+} from '../services/weatherService';
 import type { City, WeatherData } from '../types/weather';
 
 export type WeatherStatus = 'idle' | 'loading' | 'success' | 'error' | 'empty';
@@ -12,7 +17,36 @@ interface WeatherState {
   query: string;
 }
 
-type Operation = { kind: 'search'; name: string } | { kind: 'select'; city: City };
+type Operation =
+  | { kind: 'search'; name: string }
+  | { kind: 'select'; city: City }
+  | { kind: 'location' };
+
+function getCurrentPosition(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocalização não suportada.'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10_000 });
+  });
+}
+
+function getLocationErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    if (error.code === 1) {
+      return 'A permissão de localização foi negada. Você ainda pode buscar uma cidade.';
+    }
+    if (error.code === 2) {
+      return 'Não foi possível determinar sua localização. Tente novamente ou busque uma cidade.';
+    }
+    if (error.code === 3) {
+      return 'A solicitação de localização demorou demais. Tente novamente ou busque uma cidade.';
+    }
+  }
+  return 'Não foi possível acessar a localização neste navegador. Use a busca manual.';
+}
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof WeatherServiceError) return error.message;
@@ -114,11 +148,58 @@ export default function useWeather() {
     }
   }
 
+  async function locate(): Promise<void> {
+    lastOperation.current = { kind: 'location' };
+    const request = beginRequest();
+    setState((current) => ({
+      ...current,
+      status: 'loading',
+      data: null,
+      cities: [],
+      error: null,
+    }));
+
+    let position: GeolocationPosition;
+    try {
+      position = await getCurrentPosition();
+    } catch (error) {
+      if (request.id !== requestId.current) return;
+      setState((current) => ({
+        ...current,
+        status: 'error',
+        data: null,
+        error: getLocationErrorMessage(error),
+      }));
+      return;
+    }
+
+    if (request.id !== requestId.current) return;
+    try {
+      const data = await getWeatherForCoordinates(
+        position.coords.latitude,
+        position.coords.longitude,
+        request.signal,
+      );
+      if (request.id !== requestId.current) return;
+      setState((current) => ({ ...current, status: 'success', data, error: null }));
+    } catch (error) {
+      if (request.id !== requestId.current) return;
+      setState((current) => ({
+        ...current,
+        status: 'error',
+        data: null,
+        error: getErrorMessage(error),
+      }));
+    }
+  }
+
   async function retry(): Promise<void> {
     const operation = lastOperation.current;
     if (!operation) return;
     if (operation.kind === 'search') {
       await search(operation.name);
+    } else if (operation.kind === 'location') {
+      await locate();
     } else {
       await selectCity(operation.city);
     }
@@ -128,6 +209,7 @@ export default function useWeather() {
     ...state,
     search,
     selectCity,
+    locate,
     retry,
   };
 }

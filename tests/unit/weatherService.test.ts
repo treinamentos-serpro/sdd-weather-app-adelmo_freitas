@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getWeather, searchCities, WeatherServiceError } from '../../src/services/weatherService';
+import {
+  getWeather,
+  getWeatherForCoordinates,
+  searchCities,
+  WeatherServiceError,
+} from '../../src/services/weatherService';
 import type { City } from '../../src/types/weather';
 
 afterEach(() => {
@@ -183,6 +188,22 @@ describe('getWeather', () => {
       maxTemperatureC: 25.1,
       precipitationProbabilityPercent: 10,
     });
+  });
+
+  it('consulta coordenadas sem associá-las a uma cidade ou armazenamento', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ timezone: 'UTC', daily: { time: [] } }), { status: 200 }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await getWeatherForCoordinates(-33.9, 151.2);
+    const [url] = fetchMock.mock.calls[0] as [string];
+
+    expect(new URL(url).searchParams.get('latitude')).toBe('-33.9');
+    expect(new URL(url).searchParams.get('longitude')).toBe('151.2');
+    expect(result.city).toBeNull();
   });
 
   it('marca campos diários ausentes como indisponíveis e não fabrica valores', async () => {

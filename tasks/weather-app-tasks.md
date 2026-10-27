@@ -495,6 +495,25 @@ lançamento.
 - **Arquivos prováveis:** `tests/e2e/weather-app.spec.ts`,
   `tasks/weather-app-tasks.md` (registro do resultado/gates, se necessário).
 
+#### Registro da revisão P9.6 — 2026-10-27
+
+- `pnpm lint`: aprovado.
+- `pnpm build`: aprovado.
+- `pnpm test`: aprovado — 12 arquivos e 83 testes.
+- `pnpm test:e2e`: aprovado — 40 execuções em Chromium, Firefox, WebKit e
+  viewport mobile.
+- A auditoria verificou teclado, foco visível, nomes/roles acessíveis e
+  contraste mínimo de 4,5:1 no teste automatizado. Os fluxos de carregamento,
+  busca, retry, resposta parcial, preferência de unidade e localização também
+  foram exercitados.
+- Os critérios funcionais AC-01.1 a AC-07.2 foram conferidos contra a
+  implementação e os testes unitários/E2E.
+- **Gates ainda abertos:** a automação cobre engines Chromium, Firefox e WebKit,
+  mas não certifica duas versões estáveis de cada navegador-alvo nem Edge; as
+  metas de performance da NFR-04 (renderização até 2 s e p95 até 3 s) não foram
+  medidas em um perfil de rede definido. Permanecem pendentes a validação de
+  termos/limites da Open-Meteo, hospedagem/SLO e perfil de medição p95.
+
 ## Rastreabilidade de requisitos funcionais
 
 | Requisito da spec | Critérios associados | Tarefas que implementam ou verificam |

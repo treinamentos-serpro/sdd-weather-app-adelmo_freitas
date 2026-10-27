@@ -97,6 +97,7 @@ test('exibe cinco dias em layout responsivo, inclusive no viewport mobile', asyn
     const controls = [
       page.getByRole('searchbox', { name: 'Cidade' }),
       page.getByRole('button', { name: 'Buscar' }),
+      page.getByRole('button', { name: 'Usar minha localização' }),
       page.getByRole('button', { name: 'Celsius' }),
       page.getByRole('button', { name: 'Fahrenheit' }),
     ];
@@ -227,6 +228,39 @@ test('completa a busca e mostra o clima em viewport mobile de 375 × 812', async
   await expect(page.getByRole('region', { name: 'Previsão de 5 dias' })).toBeVisible();
   await expect(page.getByRole('article')).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
+test('solicita localização só após ação explícita e não persiste coordenadas', async ({ page }) => {
+  let forecastUrl: string | null = null;
+  await page.route('https://api.open-meteo.com/**', async (route) => {
+    forecastUrl = route.request().url();
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(forecast) });
+  });
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: -33.9, longitude: 151.2 });
+
+  expect(forecastUrl).toBeNull();
+  await page.getByRole('button', { name: 'Usar minha localização' }).click();
+  await expect(page.getByRole('region', { name: 'Clima atual · Localização atual' })).toBeVisible();
+  expect(forecastUrl).not.toBeNull();
+  if (!forecastUrl) throw new Error('A consulta por coordenadas não foi iniciada.');
+  const params = new URL(forecastUrl).searchParams;
+  expect(params.get('latitude')).toBe('-33.9');
+  expect(params.get('longitude')).toBe('151.2');
+  expect(await page.evaluate(() => Object.keys(window.localStorage).sort())).toEqual([
+    'weather-unit',
+  ]);
+});
+
+test('informa permissão de localização negada e mantém busca manual disponível', async ({
+  page,
+}) => {
+  await page.context().grantPermissions([], { origin: 'http://localhost:5173' });
+  await page.getByRole('button', { name: 'Usar minha localização' }).click();
+
+  await expect(page.getByRole('alert')).toContainText('A permissão de localização foi negada');
+  await expect(page.getByRole('searchbox', { name: 'Cidade' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Buscar' })).toBeEnabled();
 });
 
 test('mantém contraste de texto normal de pelo menos 4,5:1', async ({ page }) => {

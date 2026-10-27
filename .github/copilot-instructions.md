@@ -17,6 +17,14 @@ Copilot**. O objetivo é construir um **Weather App** seguindo o fluxo:
 Antes de implementar qualquer feature, confirme que existe especificação
 (`specs/`), plano (`plans/`) e tarefas (`tasks/`) correspondentes.
 
+## Commits por passo do workshop
+
+- Ao concluir cada passo identificado como `P<fase>.<número>` (por exemplo,
+`P2.4`) que altere arquivos, crie um commit próprio.
+- Não agrupe passos diferentes no mesmo commit; faça stage somente dos arquivos do passo e preserve alterações não relacionadas.
+- Antes do commit, revise o diff e execute as validações aplicáveis ao tipo de mudança.
+- Escreva a mensagem em pt-BR, mantendo prefixos Conventional Commits e anglicismos técnicos quando fizer sentido. Exemplo: `docs: mapear riscos técnicos e de produto do Weather App (P2.4)`.
+
 ## Stack
 
 - **Linguagem:** TypeScript (strict)
